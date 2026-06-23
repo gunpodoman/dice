@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#090d1a">
+  <meta name="description" content="브라우저에서 즐기는 오리지널 주사위 디펜스 게임">
+  <title>Dice Frontline</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="ambient ambient-a"></div>
+  <div class="ambient ambient-b"></div>
+
+  <header class="site-header">
+    <a class="brand" href="./" aria-label="Dice Frontline 홈">
+      <span class="brand-mark" aria-hidden="true">
+        <i></i><i></i><i></i><i></i><i></i>
+      </span>
+      <span>
+        <small>DICE DEFENSE</small>
+        <strong>Dice Frontline</strong>
+      </span>
+    </a>
+    <div class="build-pill">SOLO BUILD 0.2</div>
+  </header>
+
+  <main class="page-shell">
+    <section id="lobbyScreen" class="screen visible">
+      <div class="hero-copy">
+        <div class="eyebrow">소환 · 합성 · 강화 · 생존</div>
+        <h1>주사위를 합쳐<br>끝없는 웨이브를 버티세요.</h1>
+        <p>
+          무작위 주사위를 소환하고 같은 종류와 같은 눈금을 합성하세요.
+          전장을 뚫고 들어오는 적을 막아 최고 기록을 갱신하는 솔로 생존 모드입니다.
+        </p>
+
+        <div class="record-strip">
+          <div>
+            <span>최고 웨이브</span>
+            <strong id="lobbyBestWave">0</strong>
+          </div>
+          <div>
+            <span>최다 처치</span>
+            <strong id="lobbyBestKills">0</strong>
+          </div>
+          <div>
+            <span>최고 점수</span>
+            <strong id="lobbyBestScore">0</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="mode-column">
+        <article class="mode-card active-mode">
+          <div class="mode-card-top">
+            <span class="mode-badge">PLAYABLE</span>
+            <span class="mode-icon">∞</span>
+          </div>
+          <h2>솔로 생존</h2>
+          <p>혼자 전장을 운영하며 점점 강해지는 적과 보스를 막는 모드입니다.</p>
+
+          <label class="field-label" for="nicknameInput">플레이어 이름</label>
+          <input id="nicknameInput" class="text-input" maxlength="14" value="플레이어" autocomplete="nickname">
+
+          <button id="startSoloButton" class="primary-button">솔로 모드 시작</button>
+        </article>
+
+        <article class="mode-card locked-mode" aria-disabled="true">
+          <div class="mode-card-top">
+            <span class="mode-badge muted-badge">NEXT</span>
+            <span class="mode-icon">VS</span>
+          </div>
+          <h2>실시간 대전</h2>
+          <p>Firebase 방 코드 방식으로 연결할 온라인 모드입니다.</p>
+          <button class="locked-button" disabled>Firebase 연동 예정</button>
+        </article>
+      </div>
+    </section>
+
+    <section id="gameScreen" class="screen game-screen">
+      <div class="game-toolbar">
+        <div class="toolbar-stat">
+          <span>웨이브</span>
+          <strong id="waveText">1</strong>
+        </div>
+        <div class="toolbar-stat">
+          <span>남은 시간</span>
+          <strong id="waveTimer">00:30</strong>
+        </div>
+        <div class="toolbar-stat danger-stat">
+          <span>하트</span>
+          <strong id="heartText">3</strong>
+        </div>
+        <div class="toolbar-stat">
+          <span>SP</span>
+          <strong id="spText">100</strong>
+        </div>
+        <div class="toolbar-stat wide-stat">
+          <span>처치 / 점수</span>
+          <strong><span id="killText">0</span> / <span id="scoreText">0</span></strong>
+        </div>
+
+        <div class="toolbar-actions">
+          <button id="pauseButton" class="icon-button" type="button">일시정지</button>
+          <button id="exitButton" class="icon-button danger-button" type="button">나가기</button>
+        </div>
+      </div>
+
+      <div class="game-layout">
+        <div class="arena-card">
+          <canvas id="gameCanvas" width="1000" height="820" aria-label="주사위 디펜스 게임 화면"></canvas>
+
+          <div id="pauseOverlay" class="center-overlay">
+            <div class="overlay-card">
+              <div class="eyebrow">PAUSED</div>
+              <h2>일시정지</h2>
+              <p>게임 시간이 멈춰 있습니다.</p>
+              <button id="resumeButton" class="primary-button">계속하기</button>
+            </div>
+          </div>
+
+          <div id="resultOverlay" class="center-overlay">
+            <div class="overlay-card result-card">
+              <div class="eyebrow">RUN COMPLETE</div>
+              <h2>방어 실패</h2>
+              <p id="resultSummary">웨이브 1에서 종료되었습니다.</p>
+              <div class="result-grid">
+                <div><span>도달 웨이브</span><strong id="resultWave">1</strong></div>
+                <div><span>처치</span><strong id="resultKills">0</strong></div>
+                <div><span>점수</span><strong id="resultScore">0</strong></div>
+              </div>
+              <button id="retryButton" class="primary-button">다시 시작</button>
+              <button id="resultLobbyButton" class="text-button">로비로 돌아가기</button>
+            </div>
+          </div>
+        </div>
+
+        <aside class="side-panel">
+          <section class="control-card summon-card">
+            <div>
+              <span class="section-kicker">SUMMON</span>
+              <h3>무작위 주사위</h3>
+              <p>빈 칸에 1눈금 주사위를 소환합니다.</p>
+            </div>
+            <button id="summonButton" class="summon-button">
+              <span>소환</span>
+              <strong id="summonCostText">10 SP</strong>
+            </button>
+          </section>
+
+          <section class="control-card">
+            <div class="section-heading">
+              <div>
+                <span class="section-kicker">POWER UP</span>
+                <h3>주사위 강화</h3>
+              </div>
+              <span class="tiny-note">최대 Lv.5</span>
+            </div>
+            <div id="upgradeList" class="upgrade-list"></div>
+          </section>
+
+          <section class="control-card guide-card">
+            <span class="section-kicker">HOW TO PLAY</span>
+            <h3>합성 방법</h3>
+            <p>같은 종류와 같은 눈금의 주사위를 차례로 누르거나 서로 드래그하면 합성됩니다.</p>
+            <p>합성 후 종류는 다시 무작위로 결정되고 눈금은 1단계 상승합니다.</p>
+          </section>
+        </aside>
+      </div>
+
+      <div id="toast" class="toast" role="status"></div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    오리지널 명칭과 시각 요소로 제작한 주사위 디펜스 프로토타입
+  </footer>
+
+  <script src="./game.js"></script>
+</body>
+</html>
